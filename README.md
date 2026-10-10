@@ -27,6 +27,59 @@ The sample destination catalog focuses on Indian states and regions, including
 Goa, Himachal Pradesh, Karnataka, Kerala, Maharashtra, Rajasthan, Sikkim, Tamil
 Nadu, and Uttarakhand.
 
+## Architecture and Use Case
+
+### Architecture
+
+RouteMate AI has three main parts:
+
+```text
+Traveler
+   |
+   v
+Web interface (HTML/CSS/JavaScript or React)
+   |
+   | sends trip details and receives results
+   v
+FastAPI backend
+   |
+   +--> Destination and itinerary services
+   +--> Budget and recommendation engine
+   +--> Login and saved-trip services
+   |
+   v
+JSON files for local account, trip, and preference data
+```
+
+The traveler enters trip preferences in the web interface. The interface sends
+them to the FastAPI backend. The backend compares destinations, prepares an
+itinerary and estimated budget, then returns the results for the interface to
+display. When a signed-in traveler saves a trip, the backend stores it with that
+traveler's account.
+
+### Main Use Case: Plan a Trip
+
+**User:** A traveler planning a holiday in India.
+
+**Goal:** Find a suitable destination and create a trip plan that fits their
+budget and interests.
+
+**Steps:**
+
+1. The traveler opens RouteMate AI and enters the trip duration, number of
+   travelers, budget, interests, and preferred pace.
+2. The app compares available destinations against those choices.
+3. The traveler reviews the recommended destinations and match scores.
+4. The app creates a day-by-day itinerary and estimated spending breakdown.
+5. The traveler can replan for a lower budget, rain, less walking, more nature,
+   or a slower pace.
+6. The traveler signs in or creates an account and saves the trip.
+7. The traveler can later sign in to review the saved trip.
+
+**Result:** The traveler receives a personalized starting plan and an estimated
+budget. The app provides planning guidance; it does not book travel services or
+guarantee live prices.
+
 ## How the application works
 
 1. **The browser collects your choices.** You choose a destination or ask the
