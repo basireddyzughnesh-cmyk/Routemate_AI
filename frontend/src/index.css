@@ -1,0 +1,320 @@
+:root {
+  /* ============================================================
+     PRIMARY COLOURS
+     ============================================================ */
+  --color-primary: #102A43;        /* Midnight Navy */
+  --color-secondary: #164E63;      /* Deep Ocean Blue */
+  --color-accent: #0D9488;         /* Electric Teal */
+  --color-accent-hover: #0F766E;   /* Dark Teal Hover */
+  --color-accent-subtle: rgba(13, 148, 136, 0.12);
+  --color-accent-glow: rgba(13, 148, 136, 0.25);
+
+  /* ============================================================
+     BACKGROUND COLOURS
+     ============================================================ */
+  --color-background: #F8FAFC;     /* Main Background */
+  --color-surface: #FFFFFF;        /* Card Background */
+  --color-surface-muted: #F1F5F9;  /* Soft Section Background */
+  --color-surface-dark: #102A43;   /* Dark Section Background */
+
+  /* ============================================================
+     TEXT COLOURS
+     ============================================================ */
+  --color-text: #172B4D;           /* Primary Text */
+  --color-text-secondary: #64748B; /* Secondary Text */
+  --color-text-muted: #94A3B8;     /* Muted Text */
+  --color-text-on-dark: #FFFFFF;   /* Text on Dark Background */
+  --color-text-muted-dark: #CBD5E1;/* Muted Text on Dark Background */
+
+  /* ============================================================
+     BORDER AND SHADOW COLOURS
+     ============================================================ */
+  --color-border: #E2E8F0;
+  --color-shadow: rgba(16, 42, 67, 0.08);
+
+  /* ============================================================
+     ACCENT COLOURS
+     ============================================================ */
+  --color-highlight: #E9C46A;      /* Champagne Highlight */
+  --color-success: #15803D;        /* Emerald Success */
+  --color-warning: #D97706;        /* Amber Warning */
+  --color-error: #DC2626;          /* Crimson Error */
+  --color-info: #2563EB;           /* Blue Information */
+
+  /* Backward Compatibility Aliases */
+  --primary-navy: var(--color-primary);
+  --secondary-navy: var(--color-secondary);
+  --navy-light: #243B53;
+  --accent-teal: var(--color-accent);
+  --teal-dark: var(--color-accent-hover);
+  --teal-glow: var(--color-accent-glow);
+  --bg-main: var(--color-background);
+  --bg-card: var(--color-surface);
+  --bg-alt: var(--color-surface-muted);
+  --text-primary: var(--color-text);
+  --text-inverse: var(--color-text-on-dark);
+  --border-subtle: var(--color-border);
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', var(--font-sans);
+  
+  --shadow-sm: 0 1px 2px var(--color-shadow);
+  --shadow-md: 0 4px 6px -1px var(--color-shadow);
+  --shadow-lg: 0 10px 15px -3px var(--color-shadow);
+  --shadow-xl: 0 20px 25px -5px rgba(16, 42, 67, 0.12);
+  --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background-color: var(--color-background);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.25;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-accent), #2DD4BF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-secondary { color: var(--color-text-secondary); }
+.text-muted { color: var(--color-text-muted); }
+
+.container {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.replanning-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.replanning-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.replanning-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.replanning-control {
+  white-space: normal;
+  text-align: center;
+}
+
+.replanning-control:disabled {
+  cursor: wait;
+  opacity: 0.65;
+  transform: none;
+}
+
+.replanning-feedback {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.replanning-feedback.is-error {
+  border-color: rgba(254, 202, 202, 0.5);
+  background: rgba(127, 29, 29, 0.35);
+  color: #FEE2E2;
+}
+
+/* ============================================================
+   10. BUTTON COMPONENTS
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.925rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
+  border-color: var(--color-accent);
+}
+
+.btn-sm { padding: 0.4rem 0.85rem; font-size: 0.825rem; }
+.btn-lg { padding: 0.85rem 1.75rem; font-size: 1.05rem; }
+
+/* Primary Button (Electric Teal #0D9488, Dark Teal Hover #0F766E, White text) */
+.btn-primary {
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+  box-shadow: 0 2px 4px var(--color-accent-glow);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent-hover);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px var(--color-accent-glow);
+}
+
+/* Secondary Button (Clean white background, Navy text #102A43, Soft blue-grey border) */
+.btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  border-color: var(--color-border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-surface-muted);
+  border-color: #CBD5E1;
+}
+
+/* Outline Button */
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.btn-outline:hover {
+  background-color: var(--color-surface-muted);
+  border-color: var(--color-text-secondary);
+}
+
+/* Midnight Navy Button */
+.btn-navy {
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+}
+
+.btn-navy:hover {
+  background-color: var(--color-secondary);
+  color: #FFFFFF;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.775rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-teal {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent-hover);
+  border: 1px solid rgba(13, 148, 136, 0.25);
+}
+
+.badge-navy {
+  background-color: rgba(16, 42, 67, 0.08);
+  color: var(--color-primary);
+  border: 1px solid rgba(16, 42, 67, 0.15);
+}
+
+.badge-champagne {
+  background-color: rgba(233, 196, 106, 0.18);
+  color: #92400E;
+  border: 1px solid rgba(233, 196, 106, 0.45);
+  font-weight: 700;
+}
+
+.badge-success {
+  background-color: rgba(21, 128, 61, 0.12);
+  color: var(--color-success);
+}
+
+.badge-warning {
+  background-color: rgba(217, 119, 6, 0.12);
+  color: var(--color-warning);
+}
+
+.badge-error {
+  background-color: rgba(220, 38, 38, 0.12);
+  color: var(--color-error);
+}
+
+/* Grid Systems */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.75rem; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+
+/* Score Bars */
+.score-bar-wrap { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.75rem; }
+.score-bar-header { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted-dark); }
+.score-track { height: 8px; background-color: rgba(255, 255, 255, 0.12); border-radius: var(--radius-full); overflow: hidden; }
+.score-fill { height: 100%; border-radius: var(--radius-full); background: linear-gradient(90deg, var(--color-secondary), var(--color-accent)); transition: width 0.6s ease; }
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .replanning-header { align-items: flex-start; flex-direction: column; }
+  .replanning-title { align-items: flex-start; flex-direction: column; }
+  .replanning-control { flex: 1 1 100%; }
+}

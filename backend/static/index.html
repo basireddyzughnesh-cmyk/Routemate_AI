@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RouteMate AI — Your Personal AI Travel Decision Engine</title>
+  <meta name="description" content="Discover destinations, compare trip options, optimise your budget, and create personalised itineraries with RouteMate AI decision engine.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <!-- Central Design Tokens & Themes -->
+  <link rel="stylesheet" href="/static/css/theme.css">
+  <!-- Leaflet CSS for Interactive Routing Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- ==================== NAVIGATION BAR ==================== -->
+  <nav class="navbar" id="main-nav" role="navigation" aria-label="Main Navigation">
+    <div class="container nav-container">
+      <div class="brand-logo" onclick="app.navigate('home')" role="button" tabindex="0">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+          </svg>
+        </div>
+        <span>RouteMate <span class="text-gradient">AI</span></span>
+      </div>
+
+      <ul class="nav-links" id="nav-menu">
+        <li class="nav-link active" data-page="home" onclick="app.navigate('home')">Home</li>
+        <li class="nav-link" data-page="explore" onclick="app.navigate('explore')">Explore</li>
+        <li class="nav-link" data-page="planner" onclick="app.navigate('planner')">AI Trip Planner</li>
+        <li class="nav-link" data-page="compare" onclick="app.navigate('compare')">Compare Trips</li>
+        <li class="nav-link" data-page="my-trips" onclick="app.navigate('my-trips')">My Trips</li>
+        <li class="nav-link" data-page="group" onclick="app.navigate('group')">Group Planner</li>
+        <li class="nav-link" data-page="assistant" onclick="app.navigate('assistant')">AI Assistant</li>
+        <li class="nav-link" data-page="analytics" onclick="app.navigate('analytics')">Analytics</li>
+        <li class="nav-link" data-page="profile" onclick="app.navigate('profile')">Profile</li>
+      </ul>
+
+      <div class="nav-actions">
+        <!-- Theme Toggle (Light / Dark) -->
+        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="app.toggleTheme()" aria-label="Toggle Theme" title="Toggle Light / Dark Mode">
+          <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg id="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <!-- Currency Selector (Un-truncated) -->
+        <select id="currency-select" class="currency-select" onchange="app.setCurrency(this.value)" aria-label="Select Currency">
+          <option value="USD">USD ($)</option>
+          <option value="EUR">EUR (€)</option>
+          <option value="INR">INR (₹)</option>
+          <option value="GBP">GBP (£)</option>
+          <option value="JPY">JPY (¥)</option>
+        </select>
+        
+        <!-- Auth Controls (Logged Out) -->
+        <div id="nav-auth-section" style="display: flex; align-items: center; gap: 0.5rem;">
+          <button class="btn btn-sm btn-secondary" onclick="app.openAuthModal('login')">Sign In</button>
+          <button class="btn btn-sm btn-primary" onclick="app.openAuthModal('register')">Get Started</button>
+        </div>
+
+        <!-- User Controls (Logged In) -->
+        <div id="nav-user-section" style="display: none; align-items: center; gap: 0.65rem;">
+          <div onclick="app.navigate('profile')" class="nav-user-pill" role="button" tabindex="0">
+            <img id="nav-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+            <span id="nav-user-name" style="font-size: 0.825rem; font-weight: 600;">Alex Rivera</span>
+          </div>
+          <button class="btn btn-sm btn-outline" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="app.logout()">Sign Out</button>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-toggle" onclick="app.toggleMobileMenu()" aria-label="Toggle Navigation">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==================== MAIN APPLICATION VIEWS ==================== -->
+  <main id="app-viewport">
+
+    <!-- PAGE 1: HOME VIEW -->
+    <section id="page-home" class="page-view active">
+      <!-- Section A: Advanced Hero with Animated Aurora Blobs & Parallax Mesh -->
+      <section class="hero-section" id="hero-section">
+        <div class="hero-aurora-container">
+          <div class="hero-aurora-blob blob-coral"></div>
+          <div class="hero-aurora-blob blob-violet"></div>
+          <div class="hero-aurora-blob blob-gold"></div>
+        </div>
+        <div class="hero-pattern-overlay"></div>
+
+        <div class="container hero-content">
+          <div class="hero-tagline scroll-reveal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            Multi-Attribute Utility Decision Engine v2.0
+          </div>
+
+          <h1 class="hero-title scroll-reveal reveal-delay-1">
+            <span class="text-gradient-animated">Your Journey. Your Choices.</span><br>
+            <span id="hero-rotating-word" class="rotating-word-wrapper">One Intelligent Companion.</span>
+          </h1>
+
+          <p class="hero-subtitle scroll-reveal reveal-delay-2">
+            Mathematical destination scoring, transparent trade-off comparison, dynamic weather and budget replanning, and personalised itineraries without tourist fluff.
+          </p>
+
+          <!-- Glassmorphism Search Card -->
+          <div class="quick-search-box scroll-reveal reveal-delay-3">
+            <div class="search-field">
+              <label for="quick-start-loc">Starting Location</label>
+              <input type="text" id="quick-start-loc" value="Jaipur, Rajasthan, India" placeholder="Departure city..." oninput="app.updateInteractiveRoutePreview()">
+            </div>
+            <div class="search-field">
+              <label for="quick-dest-select">Destination</label>
+              <select id="quick-dest-select" onchange="app.updateInteractiveRoutePreview()">
+                <option value="">AI Discovery Mode (Auto-Select)</option>
+                <option value="jaipur-rajasthan">Jaipur, Rajasthan</option>
+                <option value="kochi-kerala">Kochi, Kerala</option>
+                <option value="goa-india">Panaji & North Goa</option>
+                <option value="shimla-himachal-pradesh">Shimla, Himachal Pradesh</option>
+                <option value="rishikesh-uttarakhand">Rishikesh, Uttarakhand</option>
+                <option value="mysuru-karnataka">Mysuru, Karnataka</option>
+                <option value="chennai-tamil-nadu">Chennai, Tamil Nadu</option>
+                <option value="gangtok-sikkim">Gangtok, Sikkim</option>
+                <option value="mumbai-maharashtra">Mumbai, Maharashtra</option>
+              </select>
+            </div>
+            <div class="search-field">
+              <label for="quick-start-date">Travel Dates</label>
+              <input type="date" id="quick-start-date">
+            </div>
+            <div class="search-field">
+              <label for="quick-budget">Total Budget (<span class="currency-label">USD</span>)</label>
+              <input type="number" id="quick-budget" value="2500" min="200" step="100">
+            </div>
+            <button class="btn btn-primary" style="height: 44px;" onclick="app.launchQuickPlan()">
+              Explore & Plan →
+            </button>
+          </div>
+
+          <!-- Dynamic SVG Interactive Route Drawer -->
+          <div class="interactive-route-preview scroll-reveal reveal-delay-4" id="interactive-route-preview">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span>🛫 Departure:</span>
+              <strong id="route-start-label" style="color: #FFA48E;">Jaipur, Rajasthan, India</strong>
+            </div>
+            <div style="flex-grow: 1; max-width: 280px; height: 18px; display: flex; align-items: center; justify-content: center;">
+              <svg width="100%" height="16" viewBox="0 0 240 16" fill="none">
+                <path d="M 10 8 Q 120 -3 230 8" stroke="#FF6B4A" stroke-width="2.5" class="route-svg-path" />
+                <circle cx="10" cy="8" r="4.5" fill="#FF6B4A" />
+                <circle cx="230" cy="8" r="5" fill="#F59E0B" />
+              </svg>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span>🛬 Target:</span>
+              <strong id="route-dest-label" style="color: #FBBF24;">AI Discovery Mode</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section B: How It Works (3 Clear Steps) -->
+      <section class="section-wrapper section-wrapper-muted">
+        <div class="container">
+          <div class="section-header scroll-reveal">
+            <div class="section-label">Seamless Workflow</div>
+            <h2 class="section-title">How RouteMate AI Plans Your Journey</h2>
+            <p class="section-desc">Three transparent steps from initial constraints to an adaptable, live itinerary.</p>
+          </div>
+
+          <div class="grid-3">
+            <div class="step-card scroll-reveal reveal-delay-1">
+              <div class="step-num-pill">01</div>
+              <h3 class="step-title">Specify Constraints</h3>
+              <p class="step-desc">Input your hard budget ceiling, mobility needs (step-free/wheelchair), party size, and travel pace without vague generic prompts.</p>
+            </div>
+            <div class="step-card scroll-reveal reveal-delay-2">
+              <div class="step-num-pill">02</div>
+              <h3 class="step-title">Multi-Attribute Scoring</h3>
+              <p class="step-desc">Our deterministic MAUT algorithm evaluates seasonal weather, cost per day, activity compatibility, and flight transit to calculate transparent fit scores.</p>
+            </div>
+            <div class="step-card scroll-reveal reveal-delay-3">
+              <div class="step-num-pill">03</div>
+              <h3 class="step-title">Adaptive Itinerary</h3>
+              <p class="step-desc">Receive itemized daily schedules, interactive route maps, and 1-click dynamic replanners for budget cuts or unexpected rainfall.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section C: Signature AI Decision Engine Showcase -->
+      <section class="section-wrapper">
+        <div class="container">
+          <div class="decision-showcase scroll-reveal">
+            <div class="decision-controls-bar">
+              <div>
+                <span class="badge badge-coral">Signature Decision Matrix</span>
+                <h3 style="font-size: 1.6rem; color: #fff; margin-top: 0.5rem;">Not Just Where to Go. Discover Where You Should Go.</h3>
+                <p style="color: var(--color-text-muted-dark); font-size: 0.925rem;">Multi-factor evaluation with explainable trade-offs and adjustable weights.</p>
+              </div>
+              <button class="btn btn-primary" onclick="app.navigate('compare')">Open Decision Matrix →</button>
+            </div>
+
+            <div class="grid-3" id="home-decision-cards">
+              <!-- Dynamically populated candidate destination scoring cards -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section D: Feature Highlights (4 Pillars) -->
+      <section class="section-wrapper section-wrapper-muted">
+        <div class="container">
+          <div class="section-header scroll-reveal">
+            <div class="section-label">Platform Capabilities</div>
+            <h2 class="section-title">Built for Thoughtful Travellers</h2>
+            <p class="section-desc">Designed to replace disjointed bookmarks, spreadsheet formulas, and random tourist lists.</p>
+          </div>
+
+          <div class="grid-4">
+            <div class="feature-box scroll-reveal reveal-delay-1">
+              <div class="feature-icon-wrap">⚖️</div>
+              <h3 class="feature-title">MAUT Decision Engine</h3>
+              <p class="feature-desc">Compare up to 3 destinations side-by-side with transparent weight tuners for budget, duration, climate, and interests.</p>
+              <button class="btn btn-sm btn-outline" onclick="app.navigate('compare')">Compare Trade-offs</button>
+            </div>
+            <div class="feature-box scroll-reveal reveal-delay-2">
+              <div class="feature-icon-wrap">🔄</div>
+              <h3 class="feature-title">Dynamic Replanning</h3>
+              <p class="feature-desc">Instantly simulate a -20% budget cut, switch outdoor trails to covered cultural centers, or prioritize step-free transit.</p>
+              <button class="btn btn-sm btn-outline" onclick="app.navigate('planner')">Try Replanner</button>
+            </div>
+            <div class="feature-box scroll-reveal reveal-delay-3">
+              <div class="feature-icon-wrap">👥</div>
+              <h3 class="feature-title">Group Intelligence</h3>
+              <p class="feature-desc">Harmonise competing tastes across multiple travelers, identify compromises, and calculate fair expense splits.</p>
+              <button class="btn btn-sm btn-outline" onclick="app.navigate('group')">Group Studio</button>
+            </div>
+            <div class="feature-box scroll-reveal reveal-delay-4">
+              <div class="feature-icon-wrap">📊</div>
+              <h3 class="feature-title">Travel Spend Analytics</h3>
+              <p class="feature-desc">Monitor itemized cost breakdowns across lodging, food, activities, and track your sustainable transit ratio.</p>
+              <button class="btn btn-sm btn-outline" onclick="app.navigate('analytics')">View Analytics</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section E: Curated Global Destinations -->
+      <section class="section-wrapper">
+        <div class="container">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem;" class="scroll-reveal">
+            <div>
+              <div class="section-label">Global Catalog</div>
+              <h2 class="section-title" style="margin-bottom: 0;">Explore Handpicked Global Wonders</h2>
+            </div>
+            <button class="btn btn-outline" onclick="app.navigate('explore')">View All Destinations →</button>
+          </div>
+          <div class="grid-3" id="home-featured-grid">
+            <!-- Dynamically populated from backend -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Section F: Sample AI Itinerary Preview -->
+      <section class="section-wrapper section-wrapper-muted">
+        <div class="container">
+          <div class="section-header scroll-reveal">
+            <div class="section-label">Preview What You Get</div>
+            <h2 class="section-title">Sample 3-Day Personalised Schedule</h2>
+            <p class="section-desc">Each itinerary arrives with hourly timings, realistic costs, transit directions, and weather contingencies.</p>
+          </div>
+
+          <div style="max-width: 860px; margin: 0 auto;" class="scroll-reveal">
+            <div class="timeline-list">
+              <div class="timeline-node">
+                <div class="timeline-bullet"></div>
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                  <div>
+                    <span class="badge badge-navy">Day 1 • Cultural Foundation</span>
+                    <h3 style="font-size: 1.25rem; margin-top: 0.35rem;">Arrival & Historic Quarter Walk</h3>
+                    <span style="font-size: 0.8rem; color: var(--color-text-muted);">Transit: Scenic Electric Tramway</span>
+                  </div>
+                  <span class="badge badge-coral">$145 Est. Cost</span>
+                </div>
+                <p style="font-size: 0.875rem; color: var(--color-text-secondary); line-height: 1.5;">
+                  Check in at your central boutique hub, sample regional specialty dining, and explore UNESCO heritage landmarks with relaxed afternoon pacing.
+                </p>
+                <div style="margin-top: 0.85rem; padding: 0.65rem 0.85rem; background: var(--color-accent-subtle); border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--color-accent-hover);">
+                  ☔ <strong>Weather Alternative:</strong> Indoor imperial museum & traditional tea pavilion if rain exceeds 40%.
+                </div>
+              </div>
+
+              <div class="timeline-node">
+                <div class="timeline-bullet"></div>
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                  <div>
+                    <span class="badge badge-navy">Day 2 • Scenic Immersion</span>
+                    <h3 style="font-size: 1.25rem; margin-top: 0.35rem;">Alpine Nature Trails & Viewpoints</h3>
+                    <span style="font-size: 0.8rem; color: var(--color-text-muted);">Transit: Cable Car & Panoramic Railway</span>
+                  </div>
+                  <span class="badge badge-coral">$210 Est. Cost</span>
+                </div>
+                <p style="font-size: 0.875rem; color: var(--color-text-secondary); line-height: 1.5;">
+                  Ascend via low-emission mountain rail to scenic viewpoints, followed by a local organic bistro lunch and gentle lakeside walk.
+                </p>
+              </div>
+
+              <div class="timeline-node">
+                <div class="timeline-bullet"></div>
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                  <div>
+                    <span class="badge badge-navy">Day 3 • Gastronomy & Leisure</span>
+                    <h3 style="font-size: 1.25rem; margin-top: 0.35rem;">Artisan Markets & Sunset Cruise</h3>
+                    <span style="font-size: 0.8rem; color: var(--color-text-muted);">Transit: Walkable Boulevard</span>
+                  </div>
+                  <span class="badge badge-coral">$125 Est. Cost</span>
+                </div>
+                <p style="font-size: 0.875rem; color: var(--color-text-secondary); line-height: 1.5;">
+                  Morning local food discovery, artisan craft studio visits, and a golden-hour harbor cruise before departure.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section G: Verified Traveler Testimonials -->
+      <section class="section-wrapper">
+        <div class="container">
+          <div class="section-header scroll-reveal">
+            <div class="section-label">Real Traveler Stories</div>
+            <h2 class="section-title">Loved by Intentional Travellers</h2>
+            <p class="section-desc">See why planners trust RouteMate AI to make confident travel decisions.</p>
+          </div>
+
+          <div class="grid-3">
+            <div class="testimonial-card scroll-reveal reveal-delay-1">
+              <div class="testimonial-stars">★★★★★</div>
+              <p class="testimonial-quote">"The -20% budget replan feature saved our Swiss trip when exchange rates spiked. It recalculated our hotels and rail passes instantly without ruining the experience."</p>
+              <div class="testimonial-author">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Sarah M." class="testimonial-avatar">
+                <div>
+                  <strong style="font-size: 0.9rem; color: var(--color-text);">Sarah Jenkins</strong>
+                  <span style="display: block; font-size: 0.75rem; color: var(--color-text-muted);">Solo Explorer • 12 Countries</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card scroll-reveal reveal-delay-2">
+              <div class="testimonial-stars">★★★★★</div>
+              <p class="testimonial-quote">"We were choosing between Jaipur and Kochi. The decision engine compared seasonal weather, interests, and budget per person with clear trade-offs. Decision made in 10 minutes!"</p>
+              <div class="testimonial-author">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" alt="David & Marcus" class="testimonial-avatar">
+                <div>
+                  <strong style="font-size: 0.9rem; color: var(--color-text);">Marcus Vance</strong>
+                  <span style="display: block; font-size: 0.75rem; color: var(--color-text-muted);">Couple Travel • Kochi Trip</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card scroll-reveal reveal-delay-3">
+              <div class="testimonial-stars">★★★★★</div>
+              <p class="testimonial-quote">"Planning a 6-person group trip usually causes massive headache. The group planner found an itinerary that matched both the budget backpackers and the luxury dinner lovers."</p>
+              <div class="testimonial-author">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Elena R." class="testimonial-avatar">
+                <div>
+                  <strong style="font-size: 0.9rem; color: var(--color-text);">Elena Rostova</strong>
+                  <span style="display: block; font-size: 0.75rem; color: var(--color-text-muted);">Group Coordinator • Goa 2026</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section H: Key Performance Metrics Banner & Animated Counters -->
+      <section class="section-wrapper" style="padding-top: 0;">
+        <div class="container">
+          <div class="stats-banner scroll-reveal">
+            <div class="grid-4">
+              <div class="stat-item-box">
+                <div class="stat-number" data-target="24500" id="stat-counter-1">0</div>
+                <div class="stat-label">Personalised Trips Generated</div>
+              </div>
+              <div class="stat-item-box">
+                <div class="stat-number" data-target="98.7" data-decimal="1" id="stat-counter-2">0%</div>
+                <div class="stat-label">Constraint Satisfaction Match</div>
+              </div>
+              <div class="stat-item-box">
+                <div class="stat-number" data-target="1820" data-prefix="$" id="stat-counter-3">$0</div>
+                <div class="stat-label">Average Budget Preserved</div>
+              </div>
+              <div class="stat-item-box">
+                <div class="stat-number" data-target="140" id="stat-counter-4">0</div>
+                <div class="stat-label">Curated Global Destinations</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section I: Final Call to Action -->
+      <section class="section-wrapper" style="padding-top: 0;">
+        <div class="container">
+          <div class="cta-banner scroll-reveal">
+            <h2>Your Next Journey Starts with a Smarter Decision.</h2>
+            <p>Build a travel itinerary calculated around your genuine interests, exact budget, and personal pacing.</p>
+            <button class="btn btn-lg btn-navy" onclick="app.navigate('planner')">Create My Personalised Trip Now →</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+
+    <!-- PAGE 2: EXPLORE DESTINATIONS VIEW -->
+    <section id="page-explore" class="page-view">
+      <div class="container" style="padding-top: 2.5rem;">
+        <div class="section-header" style="text-align: left; max-width: 100%; margin-bottom: 2rem;">
+          <div class="section-label">Global Catalog</div>
+          <h1 class="section-title">Explore Travel Destinations</h1>
+          <p class="section-desc">Search, filter by daily budget tier, and compare options across continents.</p>
+        </div>
+
+        <!-- Filter Controls -->
+        <div style="background-color: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+          <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; flex-grow: 1;">
+            <input type="text" id="explore-search" placeholder="Search destination, country, interests..." style="min-width: 260px; padding: 0.6rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);" oninput="app.filterDestinations()">
+            
+            <select id="explore-region-filter" style="padding: 0.6rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);" onchange="app.filterDestinations()">
+              <option value="all">All Regions</option>
+              <option value="East Asia">East Asia</option>
+              <option value="Western Europe">Western Europe</option>
+              <option value="Southeast Asia">Southeast Asia</option>
+              <option value="North America">North America</option>
+              <option value="South Asia">South Asia</option>
+              <option value="Central America">Central America</option>
+              <option value="Southern Europe">Southern Europe</option>
+              <option value="Oceania">Oceania</option>
+            </select>
+
+            <select id="explore-interest-filter" style="padding: 0.6rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);" onchange="app.filterDestinations()">
+              <option value="all">All Interests</option>
+              <option value="Culture">Culture</option>
+              <option value="Nature">Nature</option>
+              <option value="Mountains">Mountains</option>
+              <option value="Food">Food</option>
+              <option value="Beaches">Beaches</option>
+              <option value="Adventure">Adventure</option>
+              <option value="Relaxation">Relaxation</option>
+            </select>
+
+            <select id="explore-sort" style="padding: 0.6rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);" onchange="app.filterDestinations()">
+              <option value="recommended">Sort: Recommended</option>
+              <option value="cost_low">Sort: Lowest Daily Cost</option>
+              <option value="cost_high">Sort: Highest Daily Cost</option>
+              <option value="safety">Sort: Highest Safety Score</option>
+              <option value="accessibility">Sort: Best Accessibility</option>
+            </select>
+          </div>
+
+          <div id="compare-selection-pill" style="display: none; align-items: center; gap: 0.5rem;">
+            <span class="badge badge-teal" id="compare-count-badge">0 Selected</span>
+            <button class="btn btn-sm btn-primary" onclick="app.launchComparisonFromSelection()">Compare Selection</button>
+          </div>
+        </div>
+
+        <!-- Destination Cards Grid -->
+        <div class="grid-3" id="explore-grid">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: AI TRIP PLANNER VIEW -->
+    <section id="page-planner" class="page-view">
+      <div class="container" style="padding-top: 2.5rem; max-width: 920px;">
+        <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+          <div class="section-label">Itinerary Generator</div>
+          <h1 class="section-title">AI Personalised Trip Planner</h1>
+          <p class="section-desc">Fill in your travel parameters and our decision engine will construct a custom itinerary, calculate itemized budgets, and optimize your route.</p>
+        </div>
+
+        <form id="trip-planner-form" onsubmit="event.preventDefault(); app.submitTripPlan();" style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 2.25rem; box-shadow: var(--shadow-md);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Starting Location *</label>
+              <input type="text" id="plan-start-loc" value="Jaipur, Rajasthan, India" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Destination</label>
+              <select id="plan-dest-id" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+                <option value="">AI Discovery Mode (Let Engine Select Best Match)</option>
+                <option value="jaipur-rajasthan">Jaipur, Rajasthan</option>
+                <option value="kochi-kerala">Kochi, Kerala</option>
+                <option value="goa-india">Panaji & North Goa</option>
+                <option value="shimla-himachal-pradesh">Shimla, Himachal Pradesh</option>
+                <option value="rishikesh-uttarakhand">Rishikesh, Uttarakhand</option>
+                <option value="mysuru-karnataka">Mysuru, Karnataka</option>
+                <option value="chennai-tamil-nadu">Chennai, Tamil Nadu</option>
+                <option value="gangtok-sikkim">Gangtok, Sikkim</option>
+                <option value="mumbai-maharashtra">Mumbai, Maharashtra</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Start Date *</label>
+              <input type="date" id="plan-start-date" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">End Date *</label>
+              <input type="date" id="plan-end-date" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Number of Travellers</label>
+              <input type="number" id="plan-travellers" value="2" min="1" max="20" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Total Trip Budget (<span class="currency-label">USD</span>) *</label>
+              <input type="number" id="plan-budget" value="2600" min="200" step="100" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Travel Style</label>
+              <select id="plan-style" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+                <option value="Solo">Solo Traveler</option>
+                <option value="Couple" selected>Couple / Romantic</option>
+                <option value="Family">Family with Children</option>
+                <option value="Friends">Friends Getaway</option>
+                <option value="Group">Extended Group</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.6rem;">Travel Interests (Select all that apply)</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;" id="interest-pill-container">
+              <span class="badge badge-teal" style="cursor: pointer; padding: 0.5rem 0.85rem;" data-val="Culture" onclick="app.toggleInterestPill(this)">Culture & Heritage ✓</span>
+              <span class="badge badge-teal" style="cursor: pointer; padding: 0.5rem 0.85rem;" data-val="Food" onclick="app.toggleInterestPill(this)">Food & Gastronomy ✓</span>
+              <span class="badge badge-teal" style="cursor: pointer; padding: 0.5rem 0.85rem;" data-val="Nature" onclick="app.toggleInterestPill(this)">Nature & Outdoors ✓</span>
+              <span class="badge badge-navy" style="cursor: pointer; padding: 0.5rem 0.85rem;" data-val="Mountains" onclick="app.toggleInterestPill(this)">Mountains</span>
+              <span class="badge badge-navy" style="cursor: pointer; padding: 0.5rem 0.85rem;" data-val="Beaches" onclick="app.toggleInterestPill(this)">Beaches & Coast</span>
+              <span class="badge badge-navy" style="cursor: pointer; padding: 0.5rem 0.85rem;" data-val="Adventure" onclick="app.toggleInterestPill(this)">Adventure</span>
+              <span class="badge badge-navy" style="cursor: pointer; padding: 0.5rem 0.85rem;" data-val="Relaxation" onclick="app.toggleInterestPill(this)">Relaxation & Spa</span>
+              <span class="badge badge-navy" style="cursor: pointer; padding: 0.5rem 0.85rem;" data-val="Photography" onclick="app.toggleInterestPill(this)">Photography</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Pace Preference</label>
+              <select id="plan-pace" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+                <option value="Relaxed">Relaxed (Max 2 activities daily, extra rest)</option>
+                <option value="Balanced" selected>Balanced (3 activities daily with leisurely lunch)</option>
+                <option value="Action-Packed">Action-Packed (Full day, high activity density)</option>
+              </select>
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: center;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; margin-top: 1rem;">
+                <input type="checkbox" id="plan-accessibility" style="width: 18px; height: 18px; accent-color: var(--accent-teal);">
+                <span>Prioritise Step-Free & Wheelchair Accessibility</span>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-generate-plan" class="btn btn-lg btn-primary" style="width: 100%;">
+            <span>Generate My AI Trip</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- PAGE 4: TRIP RESULTS / ITINERARY DETAILS VIEW -->
+    <section id="page-trip-result" class="page-view">
+      <div class="container" style="padding-top: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <button class="btn btn-sm btn-outline" onclick="app.navigate('planner')">← Back to Planner</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-sm btn-navy" onclick="app.saveCurrentTrip()">💾 Save to My Trips</button>
+            <button class="btn btn-sm btn-primary" onclick="window.print()">🖨️ Export / Print</button>
+          </div>
+        </div>
+
+        <!-- Trip Header Card -->
+        <div id="trip-header-card" style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Dynamic Replanning Action Bar -->
+        <div class="replanning-action-bar" style="background: linear-gradient(135deg, var(--primary-navy), var(--secondary-navy)); color: #fff; border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2.5rem;">
+          <div class="replanning-header">
+            <div class="replanning-title">
+              <span class="badge badge-teal">Adaptive Replanning</span>
+              <h3 style="color: #fff; font-size: 1.15rem;">Need to Adapt Your Plan?</h3>
+            </div>
+            <span style="font-size: 0.8rem; color: #94A3B8;">Dynamic recalculation of costs, route stops, and timing</span>
+          </div>
+
+          <div class="replanning-controls">
+            <button class="btn btn-sm btn-secondary replanning-control" onclick="app.triggerReplan('budget_cut')">📉 Reduce Budget by 20%</button>
+            <button class="btn btn-sm btn-secondary replanning-control" onclick="app.triggerReplan('rain_fallback')">🌧️ Rain Weather Contingency</button>
+            <button class="btn btn-sm btn-secondary replanning-control" onclick="app.triggerReplan('reduce_walking')">🚶 Reduce Walking / Step-Free</button>
+            <button class="btn btn-sm btn-secondary replanning-control" onclick="app.triggerReplan('more_nature')">🌲 More Nature & Scenery</button>
+            <button class="btn btn-sm btn-secondary replanning-control" onclick="app.triggerReplan('relax_pace')">☕ Relax Daily Pace</button>
+          </div>
+          <div id="replanning-feedback" class="replanning-feedback" role="status" aria-live="polite" style="display: none;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+          <!-- Left: Day-by-Day Timeline -->
+          <div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Day-by-Day Personalised Itinerary</h2>
+            <div class="timeline-list" id="itinerary-timeline">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Right: Budget Breakdown, Route Map & Packing List -->
+          <div>
+            <!-- Category Budget Breakdown -->
+            <div style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+              <h3 style="font-size: 1.15rem; margin-bottom: 1rem;">Budget Breakdown</h3>
+              <div id="budget-category-list"></div>
+            </div>
+
+            <!-- Route Map -->
+            <div style="margin-bottom: 2rem;">
+              <h3 style="font-size: 1.15rem; margin-bottom: 0.75rem;">Interactive Route & Stops</h3>
+              <div id="trip-map" class="map-container"></div>
+            </div>
+
+            <!-- AI Packing Checklist -->
+            <div style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+              <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">AI Packing Assistant</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Customized for destination climate and activities</p>
+              <div id="packing-checklist-items" style="display: flex; flex-direction: column; gap: 0.65rem;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 6: COMPARE TRIPS VIEW -->
+    <section id="page-compare" class="page-view">
+      <div class="container" style="padding-top: 2.5rem;">
+        <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+          <div class="section-label">Decision Engine Analysis</div>
+          <h1 class="section-title">Compare Destinations & Trade-offs</h1>
+          <p class="section-desc">Multi-Attribute Utility Theory (MAUT) comparison. Fine-tune your evaluation weights and view mathematically sound trade-off explanations.</p>
+        </div>
+
+        <!-- Weight Tuner Bar -->
+        <div style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.1rem;">Decision Factor Weights (Sum = 100%)</h3>
+            <button class="btn btn-sm btn-outline" onclick="app.resetCompareWeights()">Reset Defaults</button>
+          </div>
+          <div class="grid-4" style="gap: 1rem;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600;">Budget Alignment: <span id="weight-budget-val">30%</span></label>
+              <input type="range" id="weight-budget" min="10" max="60" value="30" style="width: 100%; accent-color: var(--accent-teal);" oninput="app.updateCompareWeights()">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600;">Interests & Activities: <span id="weight-interest-val">30%</span></label>
+              <input type="range" id="weight-interest" min="10" max="60" value="30" style="width: 100%; accent-color: var(--accent-teal);" oninput="app.updateCompareWeights()">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600;">Pace & Duration: <span id="weight-duration-val">20%</span></label>
+              <input type="range" id="weight-duration" min="5" max="40" value="20" style="width: 100%; accent-color: var(--accent-teal);" oninput="app.updateCompareWeights()">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600;">Seasonal Weather: <span id="weight-weather-val">20%</span></label>
+              <input type="range" id="weight-weather" min="5" max="40" value="20" style="width: 100%; accent-color: var(--accent-teal);" oninput="app.updateCompareWeights()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Comparison Cards Row -->
+        <div id="compare-results-matrix" class="grid-3" style="margin-bottom: 2rem;">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Trade-off Verdict Banner -->
+        <div id="compare-tradeoff-banner" style="background: linear-gradient(135deg, var(--primary-navy), var(--secondary-navy)); color: #fff; padding: 1.75rem; border-radius: var(--radius-lg); font-size: 0.95rem; line-height: 1.6;"></div>
+      </div>
+    </section>
+
+    <!-- PAGE 7: MY TRIPS VIEW -->
+    <section id="page-my-trips" class="page-view">
+      <div class="container" style="padding-top: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div class="section-label">Personal Travel Log</div>
+            <h1 class="section-title">My Saved Trips & Expenses</h1>
+          </div>
+          <button class="btn btn-primary" onclick="app.navigate('planner')">+ Plan New Trip</button>
+        </div>
+
+        <div id="saved-trips-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <!-- Populated dynamically with saved trip cards -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 8: GROUP TRIP PLANNER VIEW -->
+    <section id="page-group" class="page-view">
+      <div class="container" style="padding-top: 2.5rem; max-width: 960px;">
+        <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+          <div class="section-label">Collaborative Intelligence</div>
+          <h1 class="section-title">Group Trip Planner & Expense Splitter</h1>
+          <p class="section-desc">Harmonise multiple group members' travel tastes, identify conflicting budget thresholds, and split expenses equitably.</p>
+        </div>
+
+        <!-- Group Members Builder Card -->
+        <div style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.2rem;">Group Members</h3>
+            <button class="btn btn-sm btn-outline" onclick="app.addGroupMemberRow()">+ Add Member</button>
+          </div>
+
+          <div id="group-members-list" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+            <!-- Member Rows -->
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Target Destination</label>
+              <select id="group-dest-select" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+                <option value="jaipur-rajasthan">Jaipur, Rajasthan</option>
+                <option value="kochi-kerala">Kochi, Kerala</option>
+                <option value="goa-india">Panaji & North Goa (Great for Groups & Value)</option>
+                <option value="shimla-himachal-pradesh">Shimla, Himachal Pradesh</option>
+                <option value="rishikesh-uttarakhand">Rishikesh, Uttarakhand</option>
+                <option value="mysuru-karnataka">Mysuru, Karnataka</option>
+                <option value="chennai-tamil-nadu">Chennai, Tamil Nadu</option>
+                <option value="gangtok-sikkim">Gangtok, Sikkim</option>
+                <option value="mumbai-maharashtra">Mumbai, Maharashtra</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Duration (Days)</label>
+              <input type="number" id="group-duration-days" value="6" min="2" max="30" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+            </div>
+          </div>
+
+          <button class="btn btn-lg btn-primary" style="width: 100%;" onclick="app.analyzeGroupPlan()">
+            Analyze Group Consensus & Split Expenses
+          </button>
+        </div>
+
+        <!-- Group Analysis Results -->
+        <div id="group-analysis-results" style="display: none;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 9: AI TRAVEL ASSISTANT VIEW -->
+    <section id="page-assistant" class="page-view">
+      <div class="container" style="padding-top: 2.5rem; max-width: 840px;">
+        <div class="section-header" style="text-align: left; margin-bottom: 1.5rem;">
+          <div class="section-label">AI Travel Decision Assistant</div>
+          <h1 class="section-title">RouteMate Conversational Assistant</h1>
+          <p class="section-desc">Ask anything about destinations, budget reduction strategies, climate contingencies, or packing tips.</p>
+        </div>
+
+        <div style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); height: 560px; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-md);">
+          <!-- Message history -->
+          <div id="full-chat-history" style="flex-grow: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div class="chat-bubble assistant">
+              <strong>RouteMate AI:</strong> Hello! I am your AI Travel Decision Assistant. I can help you evaluate destination trade-offs, optimize your trip budget, plan for rainy weather, and answer travel queries. How can I assist you today?
+            </div>
+          </div>
+
+          <!-- Quick Prompts Row -->
+          <div style="padding: 0.75rem 1.25rem; background-color: var(--bg-alt); border-top: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; gap: 0.5rem;">
+            <span class="badge badge-navy" style="cursor: pointer;" onclick="app.sendAssistantQuickPrompt('How can I reduce my trip budget by 20%?')">📉 Cut Budget by 20%</span>
+            <span class="badge badge-navy" style="cursor: pointer;" onclick="app.sendAssistantQuickPrompt('What should I do if it rains at my destination?')">🌧️ Rain Alternatives</span>
+            <span class="badge badge-navy" style="cursor: pointer;" onclick="app.sendAssistantQuickPrompt('Compare Jaipur vs Kochi for a 5-day trip')">⚖️ Compare Jaipur vs Kochi</span>
+            <span class="badge badge-navy" style="cursor: pointer;" onclick="app.sendAssistantQuickPrompt('What are essential packing items for adventure travel?')">🧳 Adventure Packing Tips</span>
+          </div>
+
+          <!-- Chat Input -->
+          <div style="padding: 1rem 1.25rem; border-top: 1px solid var(--border-subtle); display: flex; gap: 0.75rem;">
+            <input type="text" id="full-chat-input" placeholder="Type your travel question..." style="flex-grow: 1; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);" onkeydown="if(event.key==='Enter') app.sendChatMessage();">
+            <button class="btn btn-primary" onclick="app.sendChatMessage()">Send</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 10: TRAVEL ANALYTICS DASHBOARD VIEW -->
+    <section id="page-analytics" class="page-view">
+      <div class="container" style="padding-top: 2.5rem;">
+        <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+          <div class="section-label">Travel Spend Intelligence</div>
+          <h1 class="section-title">Travel Analytics & Spending Metrics</h1>
+          <p class="section-desc">Transparent overview of estimated vs recorded spending, category breakdowns, and sustainability indices.</p>
+        </div>
+
+        <div class="grid-4" id="analytics-stat-cards" style="margin-bottom: 2rem;">
+          <!-- Dynamically populated stat tiles -->
+        </div>
+
+        <div class="grid-2">
+          <div style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+            <h3 style="font-size: 1.15rem; margin-bottom: 1.25rem;">Expenditure by Category</h3>
+            <div id="analytics-category-bars" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+          </div>
+
+          <div style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+            <h3 style="font-size: 1.15rem; margin-bottom: 1.25rem;">Travel Style & Sustainability Insights</h3>
+            <div id="analytics-insights-content" style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary);"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 11: USER PROFILE & SETTINGS VIEW -->
+    <section id="page-profile" class="page-view">
+      <div class="container" style="padding-top: 2.5rem; max-width: 1040px;">
+        <!-- Profile Banner Card -->
+        <div class="profile-banner-card">
+          <div class="profile-banner-header"></div>
+          <div class="profile-banner-body">
+            <div style="display: flex; align-items: flex-end; gap: 1.25rem;">
+              <img id="profile-avatar-img" class="profile-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="Avatar">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                  <h1 id="profile-name-heading" style="font-size: 1.75rem; color: var(--color-text);">Alex Rivera</h1>
+                  <span class="badge badge-gold" id="profile-membership-badge">RouteMate Pro Explorer</span>
+                  <span class="badge badge-coral" style="font-size: 0.7rem;">✓ Verified Traveler</span>
+                </div>
+                <p id="profile-email-sub" class="text-secondary" style="font-size: 0.9rem; margin-top: 0.25rem;">
+                  alex.rivera@routemate.ai • <span id="profile-location-sub">Jaipur, Rajasthan, India</span>
+                </p>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-sm btn-outline" onclick="app.exportUserData()">📥 Export Data (JSON)</button>
+              <button class="btn btn-sm btn-outline" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.25);" onclick="app.logout()">Sign Out</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Travel Achievement Stat Tiles -->
+        <div class="grid-4" style="margin-bottom: 2rem;">
+          <div style="background: var(--bg-surface); padding: 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); text-align: center; box-shadow: var(--shadow-sm);">
+            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 600;">Completed Journeys</span>
+            <div style="font-size: 1.85rem; font-weight: 800; color: var(--color-primary); margin-top: 0.25rem;" id="stat-trips-count">6</div>
+            <span style="font-size: 0.8rem; color: var(--color-accent); font-weight: 500;">AI-Optimized</span>
+          </div>
+          <div style="background: var(--bg-surface); padding: 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); text-align: center; box-shadow: var(--shadow-sm);">
+            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 600;">Countries Explored</span>
+            <div style="font-size: 1.85rem; font-weight: 800; color: var(--color-accent); margin-top: 0.25rem;" id="stat-countries-count">14</div>
+            <span style="font-size: 0.8rem; color: var(--color-text-secondary); font-weight: 500;">Across 4 Continents</span>
+          </div>
+          <div style="background: var(--bg-surface); padding: 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); text-align: center; box-shadow: var(--shadow-sm);">
+            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 600;">Budget Preserved</span>
+            <div style="font-size: 1.85rem; font-weight: 800; color: var(--color-success); margin-top: 0.25rem;" id="stat-savings-count">$1,820</div>
+            <span style="font-size: 0.8rem; color: var(--color-text-secondary); font-weight: 500;">Via Smart Replanning</span>
+          </div>
+          <div style="background: var(--bg-surface); padding: 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); text-align: center; box-shadow: var(--shadow-sm);">
+            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 600;">Eco-Transit Index</span>
+            <div style="font-size: 1.85rem; font-weight: 800; color: var(--color-primary); margin-top: 0.25rem;">94%</div>
+            <span style="font-size: 0.8rem; color: var(--color-accent); font-weight: 500;">Electric Rail & Walks</span>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             SECTION: GENERAL DETAILS (PROMINENT OVERVIEW CARD)
+             ============================================================ -->
+        <div class="general-details-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.35rem;">👤</span>
+                <h2 style="font-size: 1.35rem; color: var(--color-text); margin: 0;">General Traveler Details</h2>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-top: 0.25rem;">
+                Core account identity, baseline travel parameters, and active decision engine preferences.
+              </p>
+            </div>
+            <span class="badge badge-gold">Account ID: <strong id="profile-gd-id" style="font-family: monospace; margin-left: 0.25rem;">usr-alex-1</strong></span>
+          </div>
+
+          <div class="general-details-grid">
+            <div class="gd-item">
+              <span class="gd-label">Full Name</span>
+              <span class="gd-value" id="profile-gd-name">Alex Rivera</span>
+            </div>
+            <div class="gd-item">
+              <span class="gd-label">Account Email</span>
+              <span class="gd-value" id="profile-gd-email">alex.rivera@routemate.ai</span>
+            </div>
+            <div class="gd-item">
+              <span class="gd-label">Home Base / City</span>
+              <span class="gd-value" id="profile-gd-city">Jaipur, Rajasthan, India</span>
+            </div>
+            <div class="gd-item">
+              <span class="gd-label">Membership Tier</span>
+              <span class="gd-value" id="profile-gd-tier" style="color: var(--color-warning);">RouteMate Pro Explorer</span>
+            </div>
+            <div class="gd-item">
+              <span class="gd-label">Member Since</span>
+              <span class="gd-value" id="profile-gd-since">January 2026</span>
+            </div>
+            <div class="gd-item">
+              <span class="gd-label">Default Travel Style</span>
+              <span class="gd-value" id="profile-gd-style">Couple / Romantic</span>
+            </div>
+            <div class="gd-item">
+              <span class="gd-label">Trip Pacing Preference</span>
+              <span class="gd-value" id="profile-gd-pace">Balanced (2–3 stops/day)</span>
+            </div>
+            <div class="gd-item">
+              <span class="gd-label">System Units & Currency</span>
+              <span class="gd-value" id="profile-gd-units">USD ($) • Kilometers (km)</span>
+            </div>
+            <div class="gd-item">
+              <span class="gd-label">Accessibility Assistance</span>
+              <span class="gd-value" id="profile-gd-access">Standard Accessibility</span>
+            </div>
+          </div>
+
+          <!-- Interests & Passions Row -->
+          <div style="margin-top: 1.25rem; padding: 1rem; background-color: var(--bg-surface-muted); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <span class="gd-label" style="display: block; margin-bottom: 0.5rem;">Active Travel Interests & Passions</span>
+            <div id="profile-gd-interests" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+              <span class="dest-tag">Culture</span>
+              <span class="dest-tag">Food</span>
+              <span class="dest-tag">Nature</span>
+              <span class="dest-tag">Photography</span>
+            </div>
+          </div>
+
+          <!-- Bio & Travel Philosophy Row -->
+          <div style="margin-top: 1rem; padding: 1rem; background-color: var(--bg-surface-muted); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <span class="gd-label" style="display: block; margin-bottom: 0.35rem;">Travel Philosophy & Bio</span>
+            <p id="profile-gd-bio" style="font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.5; margin: 0; font-style: italic;">
+              "Curious wanderer & culinary enthusiast. Focused on sustainable journeys and immersive cultural routes."
+            </p>
+          </div>
+        </div>
+
+        <!-- Profile Settings Grid & Saved Trips -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+          <!-- Left Column: Settings Form & Saved Trips -->
+          <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <!-- Settings Form -->
+            <div style="background-color: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 2rem; box-shadow: var(--shadow-sm);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                  <h3 style="font-size: 1.25rem; color: var(--color-text); margin: 0;">Edit Travel Preferences</h3>
+                  <p style="font-size: 0.825rem; color: var(--color-text-muted); margin-top: 0.25rem;">Changes update your live MAUT evaluation profiles immediately.</p>
+                </div>
+              </div>
+
+              <form id="profile-edit-form" onsubmit="event.preventDefault(); app.saveProfileSettings();">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                  <div>
+                    <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--color-text);">Full Name</label>
+                    <input type="text" id="prof-name" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--color-text);" required>
+                  </div>
+                  <div>
+                    <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--color-text);">Account Email</label>
+                    <input type="email" id="prof-email" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--color-text);" autocomplete="email" required>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                  <div>
+                    <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--color-text);">Home Base City</label>
+                    <input type="text" id="prof-home-city" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--color-text);">
+                  </div>
+                  <div>
+                    <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--color-text);">Default Travel Style</label>
+                    <select id="prof-style" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--color-text);">
+                      <option value="Solo">Solo Traveler</option>
+                      <option value="Couple">Couple / Romantic</option>
+                      <option value="Family">Family with Kids</option>
+                      <option value="Friends">Friends Group</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                  <div>
+                    <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--color-text);">Preferred Pace</label>
+                    <select id="prof-pace" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--color-text);">
+                      <option value="Relaxed">Relaxed (Leisure focus)</option>
+                      <option value="Balanced">Balanced (Standard 2-3 stops/day)</option>
+                      <option value="Action-Packed">Action-Packed (High density)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--color-text);">Distance Units</label>
+                    <select id="prof-units" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--color-text);">
+                      <option value="km">Kilometers (km)</option>
+                      <option value="mi">Miles (mi)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 1.25rem;">
+                  <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--color-text);">Bio & Travel Philosophy</label>
+                  <textarea id="prof-bio" rows="3" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-family: inherit; font-size: 0.9rem; background: var(--bg-surface); color: var(--color-text);"></textarea>
+                </div>
+
+                <div style="margin-bottom: 1.5rem; background: var(--bg-surface-muted); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                  <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--color-text);">
+                    <input type="checkbox" id="prof-accessibility" style="width: 18px; height: 18px; accent-color: var(--color-accent);">
+                    <span>Always prioritise step-free transit & accessible venues in itineraries</span>
+                  </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btn-save-profile">Save Profile Changes</button>
+              </form>
+            </div>
+
+            <!-- Profile Saved Trips Preview -->
+            <div style="background-color: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.2rem; color: var(--color-text); margin: 0;">My Saved Itineraries</h3>
+                <button class="btn btn-sm btn-outline" onclick="app.navigate('my-trips')">View All Trips →</button>
+              </div>
+              <div id="profile-saved-trips-container" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- Populated dynamically by app.renderProfile() -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: AI Services & Security -->
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="background-color: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+              <h4 style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--color-text);">Connected AI Services</h4>
+              <p style="font-size: 0.825rem; color: var(--color-text-secondary); margin-bottom: 1rem; line-height: 1.5;">
+                Your general details are processed locally by RouteMate's deterministic Multi-Attribute Utility engine.
+              </p>
+              <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.8rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.6rem; background: var(--bg-surface-muted); border-radius: var(--radius-sm);">
+                  <span style="font-weight: 500;">MAUT Scoring Engine</span>
+                  <span class="badge badge-coral">Active</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.6rem; background: var(--bg-surface-muted); border-radius: var(--radius-sm);">
+                  <span style="font-weight: 500;">Open-Meteo Climate Feed</span>
+                  <span class="badge badge-coral">Connected</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.6rem; background: var(--bg-surface-muted); border-radius: var(--radius-sm);">
+                  <span style="font-weight: 500;">Disk JSON Storage</span>
+                  <span class="badge badge-coral">Synchronized</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.6rem; background: var(--bg-surface-muted); border-radius: var(--radius-sm);">
+                  <span style="font-weight: 500;">Group Intelligence</span>
+                  <span class="badge badge-gold">Ready</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="background-color: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+              <h4 style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--color-danger);">Data & Privacy</h4>
+              <p style="font-size: 0.825rem; color: var(--color-text-secondary); margin-bottom: 1rem; line-height: 1.5;">
+                You retain complete control of your travel preferences, saved trips, and locally cached journal entries.
+              </p>
+              <button class="btn btn-sm btn-outline" style="width: 100%; border-color: rgba(239, 68, 68, 0.25); color: var(--color-danger);" onclick="app.clearStoredData()">Clear All Local Trip History</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== DESTINATION DETAILS MODAL ==================== -->
+  <div class="modal-overlay" id="dest-detail-modal" onclick="if(event.target===this) app.closeDestModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-dest-title" style="font-size: 1.35rem;">Destination Details</h3>
+        <button class="modal-close" onclick="app.closeDestModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-dest-content">
+        <!-- Filled dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="app.closeDestModal()">Close</button>
+        <button class="btn btn-primary" id="modal-plan-btn">Plan Trip to This Destination</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== AUTHENTICATION MODAL ==================== -->
+  <div class="modal-overlay" id="auth-modal" onclick="if(event.target===this) app.closeAuthModal()">
+    <div class="modal-box" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3 id="auth-modal-title" style="font-size: 1.25rem;">Sign In to RouteMate AI</h3>
+        <button class="modal-close" onclick="app.closeAuthModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- 1-Click Demo Login Banner -->
+        <div style="background: linear-gradient(135deg, rgba(13, 148, 136, 0.12), rgba(22, 78, 99, 0.12)); border: 1px solid rgba(13, 148, 136, 0.3); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+          <div style="font-weight: 700; font-size: 0.9rem; color: var(--primary-navy); margin-bottom: 0.25rem;">⚡ Instant 1-Click Access</div>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Log in immediately as demo traveler Alex Rivera to test all profile features.</p>
+          <button class="btn btn-sm btn-primary" style="width: 100%;" onclick="app.loginAsDemo()">Sign In as Demo Traveler</button>
+        </div>
+
+        <div style="display: flex; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.25rem;">
+          <button id="auth-tab-login" class="nav-link active" style="flex: 1; text-align: center; justify-content: center; border-radius: 0; border-bottom: 2px solid var(--accent-teal);" onclick="app.switchAuthTab('login')">Sign In</button>
+          <button id="auth-tab-register" class="nav-link" style="flex: 1; text-align: center; justify-content: center; border-radius: 0;" onclick="app.switchAuthTab('register')">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" onsubmit="event.preventDefault(); app.submitLogin();">
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem;">Email Address</label>
+            <input type="email" id="login-email" value="alex.rivera@routemate.ai" required style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+          </div>
+          <div style="margin-bottom: 1.25rem;">
+            <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem;">Password</label>
+            <input type="password" id="login-password" value="password123" required style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;" id="btn-login-submit">Sign In to My Account</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" style="display: none;" onsubmit="event.preventDefault(); app.submitRegister();">
+          <div style="margin-bottom: 0.85rem;">
+            <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem;">Full Name</label>
+            <input type="text" id="reg-name" placeholder="e.g. Jordan Lee" required style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+          </div>
+          <div style="margin-bottom: 0.85rem;">
+            <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem;">Email Address</label>
+            <input type="email" id="reg-email" placeholder="jordan@example.com" required style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+          </div>
+          <div style="margin-bottom: 0.85rem;">
+            <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem;">Password</label>
+            <input type="password" id="reg-password" placeholder="At least 12 characters" minlength="12" maxlength="128" autocomplete="new-password" required style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+          </div>
+          <div style="margin-bottom: 1.25rem;">
+            <label style="display: block; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem;">Home City</label>
+            <input type="text" id="reg-city" placeholder="e.g. Jaipur, Rajasthan, India" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;" id="btn-register-submit">Create Free Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FLOATING AI ASSISTANT ==================== -->
+  <button class="ai-float-trigger" onclick="app.toggleFloatChat()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    <span>AI Assistant</span>
+  </button>
+
+  <div class="ai-drawer" id="float-chat-drawer">
+    <div class="ai-drawer-header">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 1.1rem;">⚡</span>
+        <strong>RouteMate Assistant</strong>
+      </div>
+      <button style="background: none; border: none; color: #fff; cursor: pointer;" onclick="app.toggleFloatChat()">✕</button>
+    </div>
+    <div class="ai-drawer-body" id="float-chat-history">
+      <div class="chat-bubble assistant">
+        Hi there! Need help picking a destination or modifying your budget? Ask me anything.
+      </div>
+    </div>
+    <div class="ai-drawer-footer">
+      <input type="text" id="float-chat-input" class="ai-input" placeholder="Ask RouteMate..." onkeydown="if(event.key==='Enter') app.sendFloatChatMessage();">
+      <button class="btn btn-sm btn-primary" onclick="app.sendFloatChatMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="brand-logo" style="margin-bottom: 1rem;">
+            <div class="brand-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+            </div>
+            <span style="color: #fff;">RouteMate <span class="text-gradient">AI</span></span>
+          </div>
+          <p style="font-size: 0.875rem; line-height: 1.6; margin-bottom: 1rem;">
+            Your personal AI travel decision engine. Transparent Multi-Attribute Utility scoring, budget optimization, and adaptive itineraries.
+          </p>
+          <div style="font-size: 0.8rem; color: #64748B;">© 2026 RouteMate AI Inc. All rights reserved.</div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul class="footer-links">
+            <li><a href="javascript:void(0)" onclick="app.navigate('home')">Home</a></li>
+            <li><a href="javascript:void(0)" onclick="app.navigate('explore')">Explore Destinations</a></li>
+            <li><a href="javascript:void(0)" onclick="app.navigate('planner')">AI Trip Planner</a></li>
+            <li><a href="javascript:void(0)" onclick="app.navigate('compare')">Compare Trips</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Features</h4>
+          <ul class="footer-links">
+            <li><a href="javascript:void(0)" onclick="app.navigate('group')">Group Planner</a></li>
+            <li><a href="javascript:void(0)" onclick="app.navigate('analytics')">Travel Analytics</a></li>
+            <li><a href="javascript:void(0)" onclick="app.navigate('assistant')">AI Travel Assistant</a></li>
+            <li><a href="javascript:void(0)" onclick="app.navigate('my-trips')">Saved Trips & Journal</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Data & Transparency</h4>
+          <ul class="footer-links">
+            <li><span style="font-size: 0.8rem;">Climate Data: Open-Meteo & Climate API</span></li>
+            <li><span style="font-size: 0.8rem;">Decision Method: Multi-Attribute Utility Theory</span></li>
+            <li><span style="font-size: 0.8rem;">Mapping: OpenStreetMap & Leaflet</span></li>
+            <li><span style="font-size: 0.8rem;">Safety: Global Travel Advisories</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS for interactive routing map -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Application Core Script -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

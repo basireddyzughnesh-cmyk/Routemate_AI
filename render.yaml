@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: routemate-ai
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: ROUTEMATE_DATA_DIR
+        value: backend/storage_data
+      - key: ALLOW_DEMO_LOGIN
+        value: "false"
+      - key: ROUTEMATE_SECRET_KEY
+        generateValue: true
