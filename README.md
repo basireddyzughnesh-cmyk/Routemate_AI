@@ -1,183 +1,298 @@
-# RouteMate AI — Your Personal AI Travel Decision Engine
+# RouteMate AI
 
-**Version:** 1.0.0  
-**Tagline:** *Your Journey. Your Choices. One Intelligent Travel Companion.*
+RouteMate AI helps you compare Indian destinations, plan a trip, estimate its
+budget, and adjust the plan when your needs change. It includes a FastAPI
+backend and two browser interfaces:
 
-RouteMate AI is an intelligent travel-planning and decision-engine web application. Rather than simply regurgitating tourist listings, it mathematically evaluates destinations against traveler preferences, transparently weighs trade-offs, generates day-by-day itineraries with itemized budget breakdowns, and provides adaptive replanning when conditions change.
+1. **Main web app:** HTML, CSS, and JavaScript served by FastAPI. This is the
+   easiest way to start the app.
+2. **React web app:** a separate React and TypeScript interface in `frontend/`.
+   It uses the same backend API.
 
----
+The project uses demo destination and planning data. It does not book transport,
+hotels, or attractions, and it does not provide live availability or live prices.
 
-## 🌟 Core & Advanced Features
+## What you can do
 
-### 1. Multi-Attribute Utility Theory (MAUT) Decision Engine — Signature Feature
-- Evaluates candidate destinations across normalized, weighted factors:
-  $$\text{Match Score} = \sum (\text{Factor Score}_i \times \text{Weight}_i)$$
-- Factors include **Budget Alignment**, **Interests & Activities Compatibility**, **Pace & Duration Fit**, **Seasonal Weather**, and **Accessibility**.
-- Documented mathematical scoring scale (0–100) with explainable verdicts and trade-off highlights.
-- User-adjustable factor weights with real-time score recalculation.
-- India-focused demo destination catalog covering Goa, Himachal Pradesh, Karnataka, Kerala, Maharashtra, Rajasthan, Sikkim, Tamil Nadu, and Uttarakhand.
+- Compare destinations using your budget, interests, trip duration, travel pace,
+  and other preferences.
+- Create a day-by-day itinerary and view estimated spending by category.
+- Replan for a lower budget, rain, less walking, more nature, or a slower pace.
+- Explore route maps and compare group preferences.
+- Use the travel assistant, packing checklist, trip journal, and spending
+  analytics.
+- Create an account, save trips, and update your profile.
 
-### 2. AI-Powered Personalised Travel Planning
-- Generates tailored day-by-day itineraries based on travel style (*Solo*, *Couple*, *Family*, *Friends*, *Group*), pace (*Relaxed*, *Balanced*, *Action-Packed*), and accessibility needs.
-- Itemized category budget breakdown (transit, lodging, food, activities, and contingency reserve).
-- Accurate per-person calculations and budget variance tracking.
+The sample destination catalog focuses on Indian states and regions, including
+Goa, Himachal Pradesh, Karnataka, Kerala, Maharashtra, Rajasthan, Sikkim, Tamil
+Nadu, and Uttarakhand.
 
-### 3. Dynamic Itinerary Replanning
-- On-the-fly schedule modification controls:
-  - **Budget Cut**: Automatically trims high-cost activities and optimizes lodging tiers (-20%).
-  - **Rain Contingency**: Replaces outdoor nature trails with covered cultural centers, museums, and wellness spas.
-  - **Reduced Walking / Step-Free**: Reconfigures routes around accessible transit and elevator-equipped venues.
-  - **More Nature**: Swaps city excursions for scenic reserves and viewpoints.
-  - **Relax Pace**: Caps daily stops at 2 activities with dedicated leisure windows.
+## How the application works
 
-### 4. Interactive Route Mapping
-- Interactive Leaflet & OpenStreetMap visualization.
-- Pinpoints Base Camp hubs, attraction waypoints, costs, and connecting route paths without external API key dependencies.
+1. **The browser collects your choices.** You choose a destination or ask the
+   planner to compare destinations, then enter details such as dates, budget,
+   travellers, interests, and preferred pace.
+2. **The browser sends a request to the API.** The user interface calls routes
+   under `/api`, such as the destination, planning, authentication, and saved
+   trip endpoints.
+3. **FastAPI validates and processes the request.** The backend uses Pydantic
+   request models and its planning and decision-engine modules to calculate
+   results.
+4. **The backend returns JSON.** The browser renders the destination scores,
+   itinerary, estimated costs, and explanations.
+5. **You can adjust the result.** Replanning applies the selected change to the
+   itinerary and its budget estimate. Estimates are planning guidance, not
+   guaranteed supplier prices.
+6. **Signed-in users can save trip data.** Protected account and trip routes
+   require a bearer token. In local development the JSON files live under
+   `backend/storage_data/` by default. Set `ROUTEMATE_DATA_DIR` to choose a
+   different data directory.
 
-### 5. Group Trip Intelligence
-- Aggregates multiple group members' travel styles, individual budgets, and interests.
-- Computes group consensus scores and detects budget disparities.
-- Calculates equitable individual splits: **Equal Division** vs. **Proportional Contribution**.
+### How destination matching works
 
-### 6. AI Travel Assistant
-- Context-aware natural-language assistant accessible via a dedicated page and floating quick-chat widget.
-- Understands budget optimizations, rainy day contingencies, and destination comparisons without fabricating fake live bookings.
+The decision engine scores each destination against weighted factors such as
+budget fit, interest match, trip length and pace, seasonal suitability, and
+accessibility. It combines the factor scores into an overall match score from
+0 to 100. A higher score means a closer match to the preferences supplied; it
+is not a guarantee that the destination is objectively best.
 
-### 7. AI Packing Assistant & Travel Journal
-- Auto-generates checklists based on duration, climate, and planned activities.
-- Allows ticking packed items, logging custom trip expenses, and recording journal notes with persistent disk storage.
+### What happens to account and trip data
 
-### 8. Travel Analytics Dashboard
-- Planned budget vs. recorded actual spend metrics.
-- Expenditure distribution by category.
-- Sustainable transit index.
+- Passwords for newly registered accounts are stored as PBKDF2 password hashes,
+  not as readable passwords.
+- Successful login returns a signed, expiring bearer token. The frontends use
+  that token for protected API requests.
+- Saved trips are associated with their account so one account cannot list or
+  modify another account's saved trips through the protected trip API.
+- Local JSON data is excluded from Git by `.gitignore`. It is not uploaded when
+  you push the source code.
+- A free cloud service may delete or replace local files during a restart or
+  redeploy. Use persistent storage or a database if cloud accounts and trips
+  must be retained.
 
-### 9. User Authentication & Profile Management
-- **Modal Sign In & Registration**: Toggleable Sign In / Register dialog with instant **1-Click Demo Traveler Login** (Alex Rivera).
-- **Personalized Travel Dashboard (`#page-profile`)**:
-  - Live travel statistics: Completed Journeys, Countries Explored, Budget Preserved, Eco-Transit Index.
-  - Decision Preference settings: Default Travel Style, Pace Preference, Home Departure Base, Measurement Units (km/mi), Bio, and persistent Accessibility mode.
-  - **Export Data (JSON)**: Download your complete travel profile and saved itineraries to disk.
-  - Data & Privacy controls to clear history.
+## Requirements
 
----
+For the backend and main web app:
 
-## 🛠️ Technical Architecture
+- Python 3.10 or newer (the current Render configuration selects Python 3.13.4).
+- pip.
 
-- **Backend:** Python 3.14 + FastAPI + Pydantic v2 + Uvicorn + Pytest
-- **Frontend:** Semantic HTML5, Vanilla CSS Design System (Deep Navy & Sophisticated Teal), Modular JavaScript (ES6+), Leaflet.js
-- **Persistence:** JSON-backed disk storage (`backend/storage_data/`) for saved trips, expenses, and user preferences.
-- **Scoring Engine:** Deterministic MAUT algorithm in `backend/services/decision_engine.py`.
+For the optional React app:
 
----
+- Node.js and npm.
 
-## 🚀 Running the Application Locally
+## Quick start: main web app
 
-You can run RouteMate AI in two flexible modes:
+These steps work in Windows PowerShell from the project folder.
 
-### Option A: Zero-Build Live Fullstack Mode (Recommended & Instant)
-FastAPI serves the entire interactive frontend directly with zero npm dependencies or build steps required:
-```bash
-# Workspace root
-python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
-```
-- **Web App:** [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
-- **Interactive Swagger API Docs:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **API Health Check:** [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
+1. Open PowerShell and go to the project:
 
-### Option B: Standalone React + TypeScript + Vite (`frontend/`)
-A modern, decoupled React frontend with Vite dev server and proxy to the FastAPI backend:
-```bash
-# Terminal 1: Start backend
-python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+   ```powershell
+   cd "C:\path\to\RouteMate AI"
+   ```
 
-# Terminal 2: Start React frontend
-cd frontend
+   Replace the example path with the folder where you saved the project.
+
+2. Create a Python virtual environment:
+
+   ```powershell
+   py -m venv .venv
+   ```
+
+3. Activate it:
+
+   ```powershell
+   .\.venv\Scripts\Activate.ps1
+   ```
+
+   If PowerShell blocks activation, open Command Prompt and use
+   `.\.venv\Scripts\activate.bat`, or run the venv Python executable directly
+   in the commands below.
+
+4. Install the backend packages:
+
+   ```powershell
+   python -m pip install -r requirements.txt
+   ```
+
+5. Start the backend and main web app:
+
+   ```powershell
+   python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+   ```
+
+6. Open these addresses in your browser:
+
+   - App: <http://127.0.0.1:8000/>
+   - API health check: <http://127.0.0.1:8000/api/health>
+   - Interactive API documentation: <http://127.0.0.1:8000/docs>
+
+Keep the PowerShell window open while using the app. To stop the server, press
+`Ctrl+C` in that window.
+
+## Optional: run the React web app
+
+The React interface is developed separately from the main FastAPI-served page.
+Run the backend first using the previous instructions, then open a **second**
+PowerShell window:
+
+```powershell
+cd "C:\path\to\RouteMate AI\frontend"
 npm install
 npm run dev
 ```
-- **React App:** [http://localhost:5173/](http://localhost:5173/) (Proxies `/api` to port 8000)
 
-### 3. Run Automated Tests
-```bash
+Open the Vite URL shown in the terminal (normally
+<http://localhost:5173/>). Its development proxy sends `/api` requests to the
+backend on port 8000.
+
+To create a production React bundle:
+
+```powershell
+npm run build
+```
+
+This writes generated files to `frontend/dist/`. The current Render configuration
+starts FastAPI and serves the main app in `backend/static/`; it does **not**
+build or serve the React bundle.
+
+## Step-by-step: plan a trip
+
+1. Start the backend and open <http://127.0.0.1:8000/>.
+2. Open the trip planner from the app navigation.
+3. Enter your trip length, number of travellers, budget, and interests.
+4. Select a destination or request a comparison.
+5. Review the match score and the factors behind it. Use it as a comparison
+   guide rather than a promise of real-world conditions.
+6. Generate the itinerary and review each day's activities and estimated
+   category costs.
+7. Try a replan option such as **Budget Cut**, **Rain Contingency**, **Reduced
+   Walking**, **More Nature**, or **Relax Pace**.
+8. Sign in or register if you want to save a trip to your account.
+9. Open your profile or analytics to review saved information and recorded
+   spending.
+
+## Accounts and authentication
+
+In local development, the app can provide a demo traveler account. Demo login
+is disabled by default when `APP_ENV=production`; do not enable it for a
+production service unless you intentionally want demo access.
+
+To create a personal account, register through the app with a valid email and a
+password of at least 12 characters. A legacy account whose password was stored
+before password hashing was added is upgraded to a hash at login; in production
+it must change its password before accessing protected account features.
+
+For production, configure `ROUTEMATE_SECRET_KEY` with a strong private value.
+Never commit secrets or real account data to GitHub. If you suspect a secret or
+password has been exposed, rotate it.
+
+## Where local data is stored
+
+By default, the backend creates JSON files in `backend/storage_data/` when it
+needs them:
+
+- `users.json` — account records and password hashes.
+- `saved_trips.json` — saved itinerary and trip information.
+- `user_preferences.json` — app preferences.
+
+These files may contain private information. Keep them out of public source
+control and make backups before moving or deleting them. You can choose another
+directory before starting the server:
+
+```powershell
+$env:ROUTEMATE_DATA_DIR = "C:\RouteMateData"
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+To use existing local data in another environment, transfer it privately and
+securely into that environment's configured data directory. Do not upload the
+files as source code or paste their contents into a public issue.
+
+## Test the application
+
+From the project root, activate the virtual environment and run:
+
+```powershell
 python -m pytest backend/tests/test_api.py -v
 ```
 
-## 🎨 How to Change the Theme in One Place
+The tests cover the health endpoint, destination catalog, scoring and planning,
+authentication, email updates, and account-specific saved trips.
 
-RouteMate AI is architected with a strict **single-source-of-truth design token system** located in:
-[`backend/static/css/theme.css`](file:///c:/Users/Zugne/OneDrive/Desktop/RouteMate%20AI/backend/static/css/theme.css)
+To check the React TypeScript code and production bundle:
 
-All pages, navigation bars, glassmorphism search cards, buttons, badges, score tracks, interactive route lines, and Leaflet map layers derive their styling exclusively from these CSS variables. **Modifying a single token in `theme.css` instantaneously transforms the entire application.**
-
-### 1. Theme Architecture & Token Hierarchy
-
-The tokens are organized into standardized functional groups:
-- **Colors**:
-  - Light mode defaults declared on `:root`
-  - Dark mode overrides declared on `[data-theme="dark"]`
-- **Gradients**:
-  - `--gradient-brand`: Linear blend of Electric Coral and Desert Gold
-  - `--gradient-hero`: Radial/linear twilight aurora backdrop
-- **Typography & Scale**: System font stack, fluid headings (`--text-xs` through `--text-4xl`), weights
-- **Layout & Spacing**: 4px base modular scale (`--space-1` through `--space-16`)
-- **Elevation & Radius**: Border radii (`--radius-sm` through `--radius-full`) and multi-layer box shadows
-- **Transitions**: Non-card navigation constraints (`--duration-nav: 140ms`), easing curves, and `prefers-reduced-motion` safety
-
-### 2. The Travel-Inspired Palette
-
-| Token | Default Hex / Value | Contrast Ratio (WCAG) | Design Purpose |
-|---|---|---|---|
-| `--color-primary` | `#0F0A2A` (Midnight Violet) | > 14:1 against sand/white | Deep celestial authority, headings, primary surfaces |
-| `--color-accent` | `#FF6B4A` (Electric Coral) | > 4.5:1 against dark/light | Energetic sunset accent, interactive CTAs, active route line |
-| `--color-highlight` | `#F59E0B` (Desert Gold) | > 4.8:1 against navy | Top AI match badges, star ratings, score accents |
-| `--bg-main` | `#FAF7F2` (Warm Sand) | Base surface | Organic, grounded canvas replacing sterile white/cold gray |
-| `--color-success` | `#10B981` (Forest Sage) | > 4.6:1 | Within-budget confirmations, eco-sustainability indicators |
-| `--color-danger` | `#EF4444` (Crimson) | > 4.5:1 | Deletion controls, budget overrun warnings |
-
-### 3. Step-by-Step: Changing the Palette in 60 Seconds
-
-To switch from the **Sunset / Midnight** palette to an **Arctic Aurora** palette, simply edit lines 12–25 in `backend/static/css/theme.css`:
-
-```css
-/* Example: Switch to Aurora Borealis Theme */
-:root {
-  /* Replace Midnight Violet with Deep Nordic Blue */
-  --color-primary: #0C1E36;
-  --color-primary-light: #16365C;
-
-  /* Replace Electric Coral with Aurora Emerald */
-  --color-accent: #00D29E;
-  --color-accent-hover: #00B386;
-  --color-accent-subtle: rgba(0, 210, 158, 0.12);
-
-  /* Replace Warm Sand with Icy Platinum Canvas */
-  --bg-main: #F4F7FB;
-  --bg-surface: #FFFFFF;
-}
+```powershell
+cd frontend
+npm install
+npm run build
 ```
 
-Save the file. Because FastAPI serves the static files live, refreshing your browser immediately propagates the new colors across:
-1. Top navigation active markers and brand icons
-2. Hero animated mesh blobs and rotating typography gradient
-3. Interactive SVG route flow preview
-4. Glassmorphism search input highlights and focus rings
-5. Decision Engine scoring bars and match badges
-6. Leaflet map circular waypoints and polyline trajectories
-7. AI Assistant drawer header and floating action button
+### Manual smoke test
 
-### 4. Light & Dark Mode Persistence
+1. Visit `/api/health`; confirm the response says `"status": "healthy"`.
+2. Visit `/docs`; confirm the API documentation loads.
+3. Open `/`; confirm the main application loads.
+4. Generate a destination recommendation and itinerary.
+5. Try a replan action and check the revised itinerary and estimate.
+6. Register an account, sign in, update the profile, and save a trip.
+7. Refresh and sign back in; confirm the saved trip appears.
+8. Create a second account and confirm it cannot see the first account's trips.
 
-Theme state is managed automatically without page reloads:
-- The theme toggle button in the navbar toggles between light and dark tokens.
-- Preference is stored in `localStorage` under key `routemate_theme`.
-- If no stored choice is found, the app automatically respects the operating system's `prefers-color-scheme`.
-- In dark mode, all surface elevations, borders, and text contrast tokens dynamically adjust while preserving the brand hue identity.
+## Deploy to Render
 
----
+The repository includes a `render.yaml` blueprint for a free web service. To
+deploy:
 
-## 📊 Evaluation & Verification Summary
-- **Automated Test Suite:** 10/10 unit and integration tests passing (`pytest`).
-- **Scoring Consistency:** Normalized weights strictly sum to 1.0 (100%), and scores strictly map within [0, 100].
-- **Data Transparency:** Weather data and safety ratings clearly cite data source models and update timestamps.
-- **Accessibility & Performance:** Zero card-hover animations in navigation; WCAG AA compliant text contrast (>4.5:1); GPU-accelerated backdrop animations; respect for `prefers-reduced-motion`.
+1. Push the project to a GitHub repository you control.
+2. In Render, choose **New** → **Blueprint** and connect that repository.
+3. Review the service settings from `render.yaml` and create the service.
+4. Wait for the build and deployment to finish. Render runs the configured
+   health check at `/api/health`.
+5. Open the Render service URL and test the app and health endpoint.
+
+The blueprint sets `APP_ENV=production`, disables demo login, and asks Render to
+generate `ROUTEMATE_SECRET_KEY`. Keep this key private and do not replace it
+without understanding that existing signed sessions will no longer validate.
+
+**Important data limitation:** the current blueprint uses Render's free plan
+without a persistent disk. JSON account and trip files may be lost when the
+instance restarts or is redeployed. Do not rely on this setup as durable storage
+for important user data. Before inviting real users, configure an appropriate
+persistent database or paid persistent storage and plan a secure migration.
+
+## Main project folders
+
+```text
+backend/
+  data/          Sample destination data
+  database/      JSON storage and account/trip persistence
+  routers/       FastAPI API endpoints
+  security/      Password hashing and signed-token authentication
+  services/      Destination scoring, itinerary, and replanning logic
+  static/        Main HTML, CSS, and JavaScript application
+  tests/         Backend API and service tests
+frontend/
+  src/           Optional React and TypeScript interface
+render.yaml      Render deployment configuration
+requirements.txt Python dependencies
+```
+
+## Troubleshooting
+
+| Problem | What to check |
+|---|---|
+| `python` or `py` is not recognized | Install Python, reopen PowerShell, and retry with `py`. |
+| `No module named ...` | Activate `.venv` and run `python -m pip install -r requirements.txt`. |
+| Port 8000 is already in use | Stop the other server or start this one on a different port. |
+| The React page cannot reach the API | Confirm FastAPI is running on port 8000 and restart Vite. |
+| Protected API returns 401 | Sign in again; the request needs a valid bearer token. |
+| Saved data is missing on free hosting | Free ephemeral storage is not durable; use a persistent database/disk and restore a backup. |
+| Render build fails | Open the service's build logs and confirm the root directory contains `requirements.txt` and `backend/`. |
+
+## Change the main app theme
+
+The main FastAPI-served interface uses CSS variables in
+`backend/static/css/theme.css`. Change the values under `:root` for the light
+theme and `[data-theme="dark"]` for dark mode. Refresh the browser to see the
+changes. The React interface has its own styling in `frontend/src/index.css`.
